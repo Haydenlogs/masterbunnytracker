@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Easter Bunny's Village</title>
+<style>
+ body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f0f0f0;
+    }
+    
+    h1 {
+        color: black;
+        padding-left: 15px;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0 20px;
+    }
+    .village-image {
+        width: 100%;
+        max-width: 800px;
+        display: block;
+        margin: 20px auto;
+    }
+    .picture-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-gap: 20px;
+    }
+    .picture-item img {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+    }
+  .countdown-container {
+    display: flex;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.flip-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* Added to vertically center the digits */
+    margin: 0 20px;
+}
+
+.flip-digit {
+    font-size: 30px;
+    font-weight: bold;
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin: 5px;
+    animation: flip 1s ease-in-out infinite alternate;
+    transform-style: preserve-3d;
+}
+  
+  .correctspacing {
+    font-size: 1.6rem;
+    color: white;
+    alignment: left;
+    font-weight: bold;
+  }
+
+  .topbar {
+    background-color: #808080;
+    padding: 10px;
+    text-align: center;
+    color: white;
+  }
+
+  #local-time {
+    font-size: 1.2rem;
+    margin-top: 5px;
+  }
+
+  #countdown {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+  }
+#countdownButtonContainer {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+}
+
+#countdownButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+#chatPopup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#chatBox {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+
+#chatMessages {
+  height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+#userInput {
+  width: calc(100% - 72px);
+  padding: 5px;
+  margin-right: 5px;
+}
+
+#sendButton {
+  padding: 5px 10px;
+}
+
+#closeButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+.logo {
+      width: 30px;
+      margin-right: 1px; /* Add right margin to create space between the logo and the text */
+    }
+</style>
+</head>
+<body>
+    
+  <div class="topbar">
+    <h1>Welcome to the Easter Bunny's Village</h1>
+    <span id="countdown" class="countdown-container">
+        <div class="flip-container">
+            <div class="flip-digit" id="days">00</div>
+        </div>
+        <div class="flip-container">
+            <div class="flip-digit" id="hours">00</div>
+        </div>
+        <div class="flip-container">
+            <div class="flip-digit" id="minutes">00</div>
+        </div>
+        <div class="flip-container">
+            <div class="flip-digit" id="seconds">00</div>
+        </div>
+    </span>
+    <span id="local-time"></span>
+</div>
+    <div class="container">
+        <h2>About Us</h2>
+        <p>The Easter Bunny's Village is a magical place where bunnies and all sorts of creatures live and prepare for Easter.</p>
+        <h2>Games Gallery</h2>
+        <div class="picture-grid">
+            <div class="picture-item">
+                <a href="https://www.abcya.com/games/easter_egg_hunt" target="_blank"><img src="https://th.bing.com/th/id/OIP.emwutj-VXh9FCTOKSI9ScgHaHa?rs=1&pid=ImgDetMain" alt="Picture 1"></a>
+            </div>
+            <div class="picture-item">
+                <a href="https://www.abcya.com/games/make_an_easter_egg" target="_blank"><img src="https://th.bing.com/th/id/OIP.DaA7BgIhXMVMG70T3yZ8dQHaHa?rs=1&pid=ImgDetMain" alt="Picture 2"></a>
+            </div>
+            <div class="picture-item">
+                <a href="https://www.abcya.com/games/easter_crossword_puzzle" target="_blank"><img src="https://ecdn.teacherspayteachers.com/thumbitem/Easter-Crossword-Puzzle-Activity-Sheet-7629330-1656584505/original-7629330-1.jpg" alt="Picture 2"></a>
+            </div>
+            <div class="picture-item">
+                <a href="https://www.abcya.com/printables/easter-basket" target="_blank"><img src="https://th.bing.com/th/id/OIP.DHdz8GZ4bMEBS2vN7Xs6-AHaHa?rs=1&pid=ImgDetMain" alt="Picture 2"></a>
+            </div>
+            <!-- Add more picture items as needed -->
+        </div>
+    </div>
+    
+    <div id="countdownButtonContainer">
+    <button id="countdownButton" style="display: none;">
+      <img src="https://media.tenor.com/MP8oSlpFsHwAAAAj/kinder-egg.gif" alt="Kinder Egg">
+    </button>
+  </div>
+  <div id="chatPopup" style="display: none;">
+    <div id="chatBox"><h1>
+      LIVE WORLD CHAT
+      </h1>
+      <button id="closeButton">&times;</button>
+      <div id="chatMessages"></div>
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button id="sendButton">Send</button>
+    </div>
+  </div>
+  
+<script>// Fetch countdown date and start countdown
+window.onload = function () {
+    fetchCountdownDate();
+};
+ const closeButton = document.getElementById("closeButton");
+function fetchCountdownDate() {
+    fetch("/getcountdowndate")
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.text();
+        })
+        .then((countdownDate) => {
+            startCountdown(countdownDate);
+        })
+        .catch((error) => {
+            console.error("There was a problem with the fetch operation:", error);
+        });
+}
+closeButton.addEventListener("click", () => {
+    chatPopup.style.display = "none";
+  });
+function startCountdown(targetDate) {
+   const countdownButton = document.getElementById("countdownButton");
+  const chatPopup = document.getElementById("chatPopup");  
+  // Calculate the target date for the countdown (the day before the specified day to 3 am)
+const targetTime = new Date(targetDate);
+targetTime.setDate(targetTime.getDate() - 1);
+targetTime.setUTCHours(8, 0, 0, 0); // 3 AM CDT is 8 AM UTC
+
+
+
+    // Update the countdown every second
+    const countdownInterval = setInterval(function () {
+        const now = new Date().getTime();
+        const distance = targetTime.getTime() - now;
+
+        if (distance < 0) {
+            // If the countdown is over, display "Expired" or take any appropriate action
+            clearInterval(countdownInterval);
+            document.querySelectorAll('.flip-digit').forEach(digit => digit.textContent = '00');
+        } else {
+            // Calculate days, hours, minutes, and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+if (days <= 5) {
+      countdownButton.style.display = "block";
+    } 
+    if (days >= 6) {
+      countdownButton.style.display = "none";
+    }
+
+            // Display the countdown
+            document.getElementById("days").textContent = padNumber(days);
+            document.getElementById("hours").textContent = padNumber(hours);
+            document.getElementById("minutes").textContent = padNumber(minutes);
+            document.getElementById("seconds").textContent = padNumber(seconds);
+        }
+      
+    if (distance < 0) {
+      clearInterval(timerInterval);
+      countdownButton.style.display = "none";
+    }
+    }, 1000);
+}
+  countdownButton.addEventListener("click", () => {
+    chatPopup.style.display = "block";
+  });
+// Function to handle SSE messages for live chat
+function handleChatSSE(event) {
+  const data = JSON.parse(event.data); // Parse the JSON data
+  let message = data.message; // Extract the message from the parsed data
+
+  // Check if the message is "[object PointerEvent]" regardless of case
+  if (message.toLowerCase() === "[object pointerevent]") {
+    const randomNumber = Math.floor(Math.random() * 10000);
+    message = undefined;
+  }
+  if (message === undefined) {
+
+  } else {
+    appendMessage(message); // Pass the modified or original message to appendMessage function
+  }
+ 
+}
+
+
+  // Function to start listening for SSE messages for live chat
+  function startChatSSE() {
+    const eventSource = new EventSource("/livechat");
+    eventSource.onmessage = handleChatSSE;
+  }
+
+  // Function to send a message to the server
+  function sendMessage(message) {
+    fetch(`/chatsend?message=${encodeURIComponent(message)}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+      })
+      .catch(error => {
+        console.error('Error sending message:', error);
+      });
+  }
+
+// Function to append a message to the chat box
+function appendMessage(message) {
+  const chatMessages = document.getElementById('chatMessages');
+  const messageElement = document.createElement('div');
+  messageElement.textContent = message; // Set the text content to the received message
+  chatMessages.appendChild(messageElement);
+}
+
+
+  // Function to handle the send button click event
+  function handleSendButtonClick() {
+    const userInput = document.getElementById('userInput');
+    const message = userInput.value.trim();
+    if (message !== '') {
+      sendMessage(message);
+      userInput.value = '';
+    }
+  }
+
+  // Function to handle the close button click event
+  function handleCloseButtonClick() {
+    document.getElementById('chatPopup').style.display = 'none';
+  }
+
+  // Add event listeners
+  document.getElementById('sendButton').addEventListener('click', handleSendButtonClick);
+  document.getElementById('closeButton').addEventListener('click', handleCloseButtonClick);
+
+  // Start listening for SSE messages
+  startChatSSE();
+   document.getElementById("sendButton").addEventListener("click", sendMessage);
+  // Function to update local time
+    function updateLocalTime() {
+      var now = new Date();
+      var hours = now.getHours() % 12 || 12;
+      var minutes = now.getMinutes().toString().padStart(2, '0');
+      var seconds = now.getSeconds().toString().padStart(2, '0');
+      var ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+      document.getElementById('local-time').textContent = hours + ':' + minutes + ':' + seconds + ' ' + ampm + " LOCAL";
+    }
+
+  setInterval(function() {
+      updateLocalTime();
+    }, 1000);
+
+function padNumber(number) {
+    return (number < 10 ? '0' : '') + number;
+}
+        function handleSSE(event) {
+        // Parse the event data
+        const data = JSON.parse(event.data);
+
+        // Check if the tracker has started
+        if (data.messageupdate) {
+          // Refresh the page to the home page if the tracker has started
+          document.getElementById("main-message").textContent =
+            data.messageupdate;
+        }
+        if (data.trackerStarted === true) {
+          // Refresh the page to the home page if the tracker has started
+          window.location.href = "/";
+        }
+        if (data.unlocked === false) {
+          // Refresh the page to the home page if the tracker has started
+          window.location.href = "/";
+        }
+        if (data.trackerEnded === true) {
+          // Refresh the page to the home page if the tracker has started
+          window.location.href = "/";
+        }
+        if (data.refresh === true) {
+          window.location.href = "/";
+        }
+      }
+
+      // Function to start listening for SSE messages
+      function startSSE() {
+        const eventSource = new EventSource("/updates");
+        eventSource.onmessage = handleSSE;
+        const eventSource2 = new EventSource("/livechat");
+        eventSource.onmessage = handleSSE2;
+      }
+
+      // Start listening for SSE messages
+      startSSE();
+</script>
+    
+<footer>
+    <center><p>&copy; 2024 Master Bunny Tracker</p>
+  <a target="_blank" href="https://discord.gg/cfd9TR6s3m"><img class="logo" width="30px;" src="https://cdn.freebiesupply.com/logos/large/2x/discord-logo-png-transparent.png">
+      </a>
+  </center>
+   
+</footer>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Come Back Easter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://th.bing.com/th/id/R.c91da894a02ade50530082d9f8679d75?rik=3GBFae2XCPWzEw&pid=ImgRaw&r=0'); /* Replace with your background image URL */
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+           text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black; /* Black outline effect */
+        }
+        #message {
+            font-size: 36px;
+           text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black; /* Black outline effect */
+        }
+      #countdown {
+    position: fixed; /* Fixed position */
+    bottom: 20px; /* Adjust the distance from the bottom */
+    right: 20px; /* Adjust the distance from the right */
+    font-size: 24px;
+    color: white;
+    text-align: center;
+    text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black; /* Black outline effect */
+}
+
+
+#countdown-text {
+    font-size: 14px;
+}
+    </style>
+</head>
+<body>
+  <div id="countdown">Countdown: <span id="countdown-time"></span></div>
+  <script>
+    // Function to handle SSE messages
+    // Function to handle SSE messages
+function handleSSE(event) {
+    // Parse the event data
+    const data = JSON.parse(event.data);
+    
+    // Check if the tracker has started
+    if (data.unlocked === true) {
+        // Refresh the page to the home page if the tracker has started
+        window.location.href = '/';
+    }
+  if (data.refresh === true) {
+          window.location.href = "/"
+        }
+}
+function fetchCountdownDate() {
+        fetch("/getcountdowndate")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.text();
+          })
+          .then((countdownDate) => {
+            startCountdown(countdownDate);
+          })
+          .catch((error) => {
+            console.error(
+              "There was a problem with the fetch operation:",
+              error
+            );
+          });
+      }
+
+      // Call fetchMessage function when the page loads
+      window.onload = function () {
+
+        fetchCountdownDate();
+      };
+
+      function startCountdown(targetDate) {
+        // Set the target date for the countdown
+        const targetTime = new Date(targetDate).getTime();
+
+        // Update the countdown every second
+        const countdownInterval = setInterval(function () {
+          const now = new Date().getTime();
+          const distance = targetTime - now;
+
+          if (distance < 0) {
+            // If the countdown is over, display "Expired" or take any appropriate action
+            document.getElementById("countdown-time").textContent = "Expired";
+            clearInterval(countdownInterval);
+          } else {
+            // Calculate days, hours, minutes, and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(
+              (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+            );
+            const minutes = Math.floor(
+              (distance % (1000 * 60 * 60)) / (1000 * 60)
+            );
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the countdown
+            document.getElementById(
+              "countdown-time"
+            ).textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+          }
+        }, 1000);
+      }
+
+
+    // Function to start listening for SSE messages
+    function startSSE() {
+        const eventSource = new EventSource('/updates');
+        eventSource.onmessage = handleSSE;
+    }
+setInterval(function () {
+        window.location.href = "/";
+      }, 60000);
+    // Start listening for SSE messages
+    startSSE();
+</script>
+
+    <div id="message">Come Back March</div>
+</body>
+</html>

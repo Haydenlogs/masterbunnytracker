@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracker</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Leaflet.label CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.label/0.2.4/leaflet.label.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: linear-gradient(to bottom, #d3e4ff 0%, #f0f8ff 100%);
+    }
+    #overlay {
+  position: fixed;
+  top: 150px; /* Adjust this value as needed */
+  right: 25px; /* Adjust this value as needed */
+      z-index: 1999;
+}
+
+#toggleButton {
+  width: 50px; /* Adjust the button size as needed */
+  height: 50px; /* Adjust the button size as needed */
+  background-color: transparent;
+  border: none;
+  color: white;
+  border-radius: 50%; /* Makes the button round */
+  cursor: pointer;
+}
+
+#symbolImage {
+  width: 100%;
+  height: 100%;;
+  border-radius: 50px;
+      z-index: 2000;
+
+}
+
+.hidden {
+  display: none;
+}
+
+
+    .top-bar {
+      background-image: url("https://th.bing.com/th/id/OIP.O7w2ykIqulaDtXqxYyPtNwHaDt?rs=1&pid=ImgDetMain");
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      top: 0;
+      padding-top: 20px;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background-repeat: repeat;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: row;
+    }
+    .title {
+      font-size: 0.8em;
+      margin-bottom: 5px;
+      color: white; /* White text */
+    }
+    .data {
+      font-weight: bold;
+      font-size: 1.2em;
+      color: white; /* White text */
+    }
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 100px);
+      margin-top: 50px;
+      padding-top: 100px;
+      border: 2px solid white; /* White border */
+    }
+    .basket-icon {
+      width: 25px;
+      height: 25px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span id="utc-time"></span>
+    <span id="london-time"></span>
+    <span id="nyc-time"></span>
+    <span id="tokyo-time"></span>
+    <span id="local-time"></span>
+  </div>
+  <div class="top-bar">
+    <div id="lastSeen" class="title">Last Seen:</div>
+    <div id="lastCityInfo" class="data">Easter Bunny's House</div>
+    <div id="baskets" class="title">Baskets Delivered:</div>
+    <div id="maxPresentsValue" class="data">0</div>
+  </div>
+
+
+  <div id="map-container"></div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Define initial map coordinates and zoom level
+const initialCoordinates = [0, 0];
+const initialZoomLevel = 2;
+
+// Create a Leaflet map
+const map = L.map('map-container').setView(initialCoordinates, initialZoomLevel);
+
+// Add the tile layer (satellite imagery with labels)
+  L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+  }).addTo(map);
+
+// Function to update Santa's position on the map
+function updateSantaPosition(latitude, longitude) {
+    // Remove previous Santa marker
+    if (typeof santaMarker !== 'undefined') {
+        map.removeLayer(santaMarker);
+    }
+
+    // Add new Santa marker
+    santaMarker = L.marker([latitude, longitude]).addTo(map);
+}
+
+// Rest of your JavaScript code goes here...
+
+
+    // Function to handle SSE messages
+    function handleSSE(event) {
+      var data = JSON.parse(event.data);
+      updateSantaPosition(data);
+      if (data.trackerEnded === true) {
+          // Refresh the page to the home page if the tracker has ended
+          window.location.href = "ended.html";
+        }
+        if (data.santaMoving === true) {
+          // Refresh the page to the home page if the tracker has ended
+          changeSantaImage();
+        }
+        if (data.unlocked === false) {
+          // Refresh the page to the home page if the tracker has started
+          window.location.href = "/";
+        }
+        if (data.newbasket) {
+          // Add the basket to the map after a delay of 1 second
+          setTimeout(function () {
+            addBasket(data.newbasket);
+          }, 9000); // 1000 milliseconds = 1 second
+        }
+        if (data.presentsDelivered) {
+           basketsInfo.textContent = `${data.presentsDelivered}`;
+        } else {
+           basketsInfo.textContent = " ";
+        }
+      if (data.refresh === true) {
+          window.location.href = "/"
+        }
+    }
+
+    // Function to start SSE
+    function startSSE() {
+      var eventSource = new EventSource("/updates");
+      eventSource.onmessage = handleSSE;
+    }
+function updateMaxPresentsValue(value) {
+      document.getElementById("maxPresentsValue").textContent = value.toLocaleString();
+    }
+
+    // Function to fetch maxpresents from the server
+    async function fetchMaxPresents() {
+      try {
+        const response = await fetch("/getmaxpresents");
+        const data = await response.json();
+        updateMaxPresentsValue(data.maxpresents);
+      } catch (error) {
+        console.error("Error fetching maxpresents:", error);
+      }
+    }
+    // Function to fetch basket data from the server
+    async function fetchBaskets() {
+      try {
+        const response = await fetch("/getbaskets");
+        const data = await response.json();
+        console.log("Baskets data:", data); // Log the response data
+        data.forEach((basket) => {
+          var basketIcon = L.icon({
+            iconUrl: "https://th.bing.com/th/id/R.d9bb1c753e4b03ac4d9a9c743287b75b?rik=h8SVGaZXv7uVPg&riu=http%3a%2f%2fclipart-library.com%2fimages_k%2feaster-basket-transparent%2feaster-basket-transparent-23.png&ehk=eTqJD5CcGIxAtijBhZ63ykr2tQ57gjaWCxMh4P80w4Y%3d&risl=&pid=ImgRaw&r=0",
+            iconSize: [50, 50], // size of the icon
+            iconAnchor: [25, 50], // point of the icon which will correspond to marker's location
+          });
+          L.marker([basket.latitude, basket.longitude], { icon: basketIcon }).addTo(map);
+        });
+      } catch (error) {
+        console.error("Error fetching baskets:", error);
+      }
+    }
+
+    // Start SSE and fetch baskets when the page loads
+    window.onload = function () {
+      startSSE();
+      fetchBaskets();
+      fetchMaxPresents();
+    };
+  </script>
+</body>
+</html>

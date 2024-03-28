@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tracker</title>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <!-- Leaflet.label CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.label/0.2.4/leaflet.label.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-image: linear-gradient(to bottom, #d3e4ff 0%, #f0f8ff 100%);
+    }
+    #overlay {
+  position: fixed;
+  top: 150px; /* Adjust this value as needed */
+  right: 25px; /* Adjust this value as needed */
+      z-index: 1999;
+}
+
+#toggleButton {
+  width: 50px; /* Adjust the button size as needed */
+  height: 50px; /* Adjust the button size as needed */
+  background-color: transparent;
+  border: none;
+  color: white;
+  border-radius: 50%; /* Makes the button round */
+  cursor: pointer;
+}
+
+#symbolImage {
+  width: 100%;
+  height: 100%;;
+  border-radius: 50px;
+      z-index: 2000;
+
+}
+
+.hidden {
+  display: none;
+}
+
+
+    .top-bar {
+      background-image: url("https://th.bing.com/th/id/OIP.O7w2ykIqulaDtXqxYyPtNwHaDt?rs=1&pid=ImgDetMain");
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      position: fixed;
+      top: 0;
+      padding-top: 100px;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      background-repeat: repeat;
+      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-direction: row;
+    }
+    .title {
+      font-size: 0.8em;
+      margin-bottom: 5px;
+      color: white; /* White text */
+    }
+    .data {
+      font-weight: bold;
+      font-size: 1.2em;
+      color: white; /* White text */
+    }
+    #map-container {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 100px);
+      margin-top: 50px;
+      padding-top: 100px;
+      border: 2px solid white; /* White border */
+    }
+    .basket-icon {
+      width: 25px;
+      height: 25px;
+    }
+    #tween-info {
+  position: fixed; /* Position the element relative to the viewport */
+  bottom: 10px; /* Distance from the bottom of the viewport */
+  left: 10px; /* Position the element off-screen initially (adjust as needed) */
+  background-color: #1b1b1b; /* Light grey background */
+  border: 1px solid #cccccc85; /* Light grey border */
+  border-radius: 5px; /* Rounded corners */
+  padding: 10px; /* Padding inside the element */
+  z-index: 200000; /* Specify the stack order of the element */
+}
+
+#tween-speed {
+  font-weight: bold; /* Make the text bold */
+  color: white;
+}
+
+#speed-value {
+  color: white;
+}
+#countdown {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+  z-index: 999999;
+  }
+#countdownButtonContainer {
+  position: fixed;
+  bottom: 70px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  z-index: 999999;
+}
+
+#countdownButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 999999;
+}
+
+#chatPopup {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  z-index: 999999;
+  top: 80px;;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+#chatBox {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+  z-index: 999999;
+}
+
+#chatMessages {
+  height: 200px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  z-index: 999999;
+}
+
+#userInput {
+  width: calc(100% - 72px);
+  padding: 5px;
+  margin-right: 5px;
+}
+
+#sendButton {
+  padding: 5px 10px;
+}
+
+#closeButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+.logo {
+      width: 30px;
+      margin-right: 1px; /* Add right margin to create space between the logo and the text */
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <div id="headingFor" class="title">Heading for:</div>
+    <div id="nextCityInfo" class="data">LOADING!!</div>
+    <div id="lastSeen" class="title">Last Seen:</div>
+    <div id="lastCityInfo" class="data">LOADING!!</div>
+    <div id="baskets" class="title">Baskets Delivered:</div>
+    <div id="basketsInfo" class="data">LOADING!!</div>
+  </div>
+  <div id="overlay">
+    <button id="toggleButton" onclick="toggleSymbol()"><div id="symbolContainer">
+      <img id="symbolImage" src="https://banner2.cleanpng.com/20180219/eqe/kisspng-video-camera-ico-icon-camera-5a8a776b7b36e7.4789365515190239795047.jpg" alt="Symbol">
+    </div></button>
+    
+  </div>
+  <div id="map-container"></div>
+<!-- Attribution -->
+<div class="leaflet-attribution">
+  Map data &copy; <a href="https://www.google.com/maps">Google Maps</a>
+</div>  <div id="tween-info">
+  <p id="tween-speed"></p>
+</div>
+  <!-- Leaflet JavaScript -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <!-- Leaflet.label JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.label/0.2.4/leaflet.label.js"></script>
+
+  <div id="countdownButtonContainer">
+    <button id="countdownButton" style="display: block;">
+      <img src="https://media.tenor.com/MP8oSlpFsHwAAAAj/kinder-egg.gif" width="40px;" height="40px;" alt="Kinder Egg">
+    </button>
+  </div>
+  <div id="chatPopup" style="display: none;">
+    <div id="chatBox"><h1>
+      LIVE WORLD CHAT
+      </h1>
+      <button id="closeButton">&times;</button>
+      <div id="chatMessages"></div>
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button id="sendButton">Send</button>
+    </div>
+  </div>
+  <script>
+    var url = new URL(window.location.href);
+  var zoom = url.searchParams.get("zoom");
+var zoom2
+  var map = L.map('map-container').setView([-27.1127, -109.3497], 7); // Easter Island coordinates
+  closeButton.addEventListener("click", () => {
+    chatPopup.style.display = "none";
+  });
+function startCountdown(targetDate) {
+   const countdownButton = document.getElementById("countdownButton");
+  const chatPopup = document.getElementById("chatPopup");  
+  // Calculate the target date for the countdown (the day before the specified day to 3 am)
+const targetTime = new Date(targetDate);
+targetTime.setDate(targetTime.getDate() - 1);
+targetTime.setUTCHours(8, 0, 0, 0); // 3 AM CDT is 8 AM UTC
+
+
+
+    // Update the countdown every second
+    const countdownInterval = setInterval(function () {
+        const now = new Date().getTime();
+        const distance = targetTime.getTime() - now;
+
+        if (distance < 0) {
+            // If the countdown is over, display "Expired" or take any appropriate action
+            clearInterval(countdownInterval);
+            document.querySelectorAll('.flip-digit').forEach(digit => digit.textContent = '00');
+        } else {
+            // Calculate days, hours, minutes, and seconds
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+if (days <= 5) {
+      countdownButton.style.display = "block";
+    } 
+    if (days >= 6) {
+      countdownButton.style.display = "none";
+    }
+
+            // Display the countdown
+            document.getElementById("days").textContent = padNumber(days);
+            document.getElementById("hours").textContent = padNumber(hours);
+            document.getElementById("minutes").textContent = padNumber(minutes);
+            document.getElementById("seconds").textContent = padNumber(seconds);
+        }
+      
+    if (distance < 0) {
+      clearInterval(timerInterval);
+      countdownButton.style.display = "none";
+    }
+    }, 1000);
+}
+  countdownButton.addEventListener("click", () => {
+    chatPopup.style.display = "block";
+  });
+// Function to handle SSE messages for live chat
+function handleChatSSE(event) {
+  const data = JSON.parse(event.data); // Parse the JSON data
+  let message = data.message; // Extract the message from the parsed data
+
+  // Check if the message is "[object PointerEvent]" regardless of case
+  if (message.toLowerCase() === "[object pointerevent]") {
+    const randomNumber = Math.floor(Math.random() * 10000);
+    message = "Anonymous User " + randomNumber + ":";
+  }
+  
+  appendMessage(message); // Pass the modified or original message to appendMessage function
+}
+
+
+  // Function to start listening for SSE messages for live chat
+  function startChatSSE() {
+    const eventSource = new EventSource("/livechat");
+    eventSource.onmessage = handleChatSSE;
+  }
+
+  // Function to send a message to the server
+  function sendMessage(message) {
+    fetch(`/chatsend?message=${encodeURIComponent(message)}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to send message');
+        }
+      })
+      .catch(error => {
+        console.error('Error sending message:', error);
+      });
+  }
+
+// Function to append a message to the chat box
+function appendMessage(message) {
+  const chatMessages = document.getElementById('chatMessages');
+  const messageElement = document.createElement('div');
+  messageElement.textContent = message; // Set the text content to the received message
+  chatMessages.appendChild(messageElement);
+}
+
+
+  // Function to handle the send button click event
+  function handleSendButtonClick() {
+    const userInput = document.getElementById('userInput');
+    const message = userInput.value.trim();
+    if (message !== '') {
+      sendMessage(message);
+      userInput.value = '';
+    }
+  }
+
+  // Function to handle the close button click event
+  function handleCloseButtonClick() {
+    document.getElementById('chatPopup').style.display = 'none';
+  }
+
+  // Add event listeners
+  document.getElementById('sendButton').addEventListener('click', handleSendButtonClick);
+  document.getElementById('closeButton').addEventListener('click', handleCloseButtonClick);
+
+  // Start listening for SSE messages
+  startChatSSE();
+
+  // Convert the zoom value to an integer (default to 2 if not provided)
+  zoom2 = parseInt(zoom) || 2;
+  
+  var nobaskets = url.searchParams.get("nobaskets");
+if (nobaskets === "1") {
+  console.log("NO BASKETS");
+} else {
+  fetchBaskets(); // Fetch all baskets onload
+}
+if (zoom !== null && !isNaN(zoom2)) {
+    map.setZoom(parseInt(zoom2));
+} else {
+    //map.setZoom(6);
+}
+var santaMarker
+// Add the tile layer (satellite imagery with labels)
+L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+}).addTo(map);
+// Function to get the last coordinates from the server and spawn Santa
+async function getLastCoordinatesAndSpawnSanta() {
+  try {
+    const response = await fetch("/getlastcords"); // Assuming the endpoint is relative to your server domain
+    const data = await response.json();
+
+    if (response.ok) {
+      // If coordinates are available, spawn Santa at those coordinates
+      spawnSanta(data.latitude, data.longitude);
+      console.log("Santa spawned at last coordinates.");
+    } else {
+      // If no coordinates available, spawn Santa at default coordinates
+      spawnSanta(-27.1044228, -109.2489683);
+      console.log("Santa spawned at default coordinates.");
+    }
+  } catch (error) {
+    console.error("Error fetching last coordinates:", error);
+  }
+}
+
+// Function to spawn Santa marker on the map
+function spawnSanta(latitude, longitude) {
+  if (santaMarker) {
+    // If Santa marker already exists, update its coordinates
+    santaMarker.setLatLng([latitude, longitude]);
+  } else {
+    // If Santa marker doesn't exist, create a new marker
+    santaMarker = L.marker([latitude, longitude], {
+      icon: L.icon({
+        iconUrl: 'https://cdn-icons-png.flaticon.com/512/347/347485.png',
+        iconSize: [50, 50], // size of the icon
+        iconAnchor: [25, 25] // point of the icon which will correspond to marker's location
+      })
+    }).addTo(map);
+  }
+}
+
+// Call the function to get the last coordinates and spawn Santa
+getLastCoordinatesAndSpawnSanta();
+
+function updateTweenSpeedText(SPEED) {
+    // Calculate the new speed
+    //var newSpeed = Math.round(SPEED * 100000 + Math.floor(Math.random() * 1000000) + 1);
+    var newSpeed = Math.round(SPEED * 5);
+    // Format the speed with commas for thousands separators
+    var formattedSpeed = newSpeed.toLocaleString();
+
+    // Get the element with the ID 'tween-speed'
+    var tweenSpeedElement = document.getElementById('tween-speed');
+
+    // Update the text content of the element
+    tweenSpeedElement.textContent = formattedSpeed + " mph.";
+}
+
+
+
+
+    // Global variables to store tweening parameters
+// Global variables to store tweening parameters
+let tweeningInterval;
+let tweeningSteps = 1000; // Adjust the number of steps for smoother animation
+let GIFTSDELIVERED = 0;
+
+var isPanning = true; // Initial state, assuming camera is showing
+const symbolImage = document.getElementById('symbolImage');
+
+function toggleSymbol() {
+  if (isPanning) {
+    symbolImage.src = 'data:image/jpeg;base64,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';
+    isPanning = false;
+  } else {
+    symbolImage.src = 'https://banner2.cleanpng.com/20180219/eqe/kisspng-video-camera-ico-icon-camera-5a8a776b7b36e7.4789365515190239795047.jpg';
+    isPanning = true;
+  }
+}
+
+var maxpresents1 = fetchMaxPresents();
+function handleSSE(event) {
+    // Parse the event data
+    const data = JSON.parse(event.data);
+
+    // Update other information
+    document.getElementById('nextCityInfo').textContent = data.nextCity ? `${data.nextCity.country}, ${data.nextCity.city} in ${data.timeLeft} seconds.` : "";
+    document.getElementById('lastCityInfo').textContent = data.lastCity ? `${data.lastCity.country}, ${data.lastCity.city}` : "";
+    document.getElementById('basketsInfo').textContent = data.presentsDelivered ? data.presentsDelivered.toLocaleString() : "";
+    GIFTSDELIVERED = data.presentsDelivered;
+// Add basket to the map
+if (!nobaskets) {
+if (data.newBasket) {
+    addBasket(data.newBasket);
+}}
+if (data.currentCity && data.nextCity && data.lastCity) {
+    const currentLatLng = santaMarker.getLatLng(); // Get the current Santa location
+    const nextLatLng = L.latLng(data.nextCity.latitude, data.nextCity.longitude);
+
+    const latDiff = nextLatLng.lat - currentLatLng.lat;
+    const lngDiff = nextLatLng.lng - currentLatLng.lng;
+
+    const distance = Math.sqrt(latDiff ** 2 + lngDiff ** 2); // Euclidean distance
+
+    const tweeningDuration = data.timeLeft * 1000; // Convert time left to milliseconds
+
+    const steps = tweeningSteps; // Total number of steps
+
+    const latStep = latDiff / steps;
+    const lngStep = lngDiff / steps;
+
+    let stepCount = 0;
+
+    // Clear any existing tweening interval
+    clearInterval(tweeningInterval);
+
+    // Start tweening interval
+    tweeningInterval = setInterval(() => {
+      const SPEED = Math.sqrt(latStep ** 2 + lngStep ** 2) * (1000000 / (tweeningDuration / steps));
+updateTweenSpeedText(SPEED);
+        if (stepCount >= steps) {
+            clearInterval(tweeningInterval);
+        } else {
+            const newLat = currentLatLng.lat + latStep * stepCount;
+            const newLng = currentLatLng.lng + lngStep * stepCount;
+            const newLatLng = L.latLng(newLat, newLng);
+            santaMarker.setLatLng(newLatLng);
+            if (isPanning === true) {
+                map.panTo(newLatLng); // Smoothly pan to the new location
+            }
+            stepCount++;
+
+            // Update tween speed text
+           
+        }
+    }, tweeningDuration / steps); // Adjust timing based on calculated duration
+}
+
+
+
+    
+    var debounce2 = false;
+    let zoomExecuted = false;
+
+
+
+
+
+    // Check if the tracker has ended
+    if (data.trackerEnded) {
+        // Call your function to execute when the tracker ends
+        yourFunctionToRunWhenTrackerEnds();
+    }
+}
+
+
+async function fetchMaxPresents() {
+    try {
+        const response2 = await fetch('/getmaxpresents');
+        if (!response2.ok) {
+            throw new Error('Failed to fetch max presents');
+        }
+        const data2 = await response.json();
+        console.log(data2.maxpresents)
+        // Return the maxpresents value from the response
+        return data2.maxpresents;
+    } catch (error) {
+        console.error('Error fetching max presents:', error);
+        return null;
+    }
+}
+
+function yourFunctionToRunWhenTrackerEnds() {
+    setTimeout(() => { // Wait for 2 seconds before executing
+        // Remove Santa marker from the map
+        map.removeLayer(santaMarker);
+
+        // Calculate bounds for other markers
+        const allMarkers = map.getPane('markerPane').children;
+        const markerCoordinates = [];
+        for (let i = 0; i < allMarkers.length; i++) {
+            const marker = allMarkers[i];
+            if (marker !== santaMarker._icon) {
+                markerCoordinates.push(marker._latlng);
+            }
+        }
+        const bounds = L.latLngBounds(markerCoordinates);
+
+        // Pan the map to the center of the bounds
+        map.setView(bounds.getCenter());
+
+        // Zoom out all the way
+        map.setZoom(map.getMinZoom());
+    }, 2000); // Wait for 2 seconds
+
+    setTimeout(() => { // Zoom and pan after 2 seconds
+        // Pan the map to (0, 0)
+        const bounds = L.latLngBounds(markerCoordinates);
+
+// Pan the map to the center of the bounds
+map.setView(bounds.getCenter());
+
+// Zoom out all the way
+map.setZoom(map.getMinZoom());
+        updateInfo();
+        window.location.href = "/en-us/embed/ended.html"
+        // Zoom out all the way
+        // Pan the map to the center of the bound
+    }, 7000); // Execute after 5 seconds (2 seconds delay + 5 seconds for animation)
+}
+
+async function updateInfo() {
+    // Update lastCityInfo
+    document.getElementById('lastCityInfo').textContent = "Easter Island";
+    
+    try {
+        // Fetch max presents
+        const maxPresents = await fetchMaxPresents();
+        // Update basketsInfo with the fetched data
+        document.getElementById('basketsInfo').textContent = GIFTSDELIVERED;
+    } catch (error) {
+        console.error('Error updating basketsInfo:', error);
+        // Handle error if needed
+    }
+}
+
+
+    // Start listening for SSE messages
+    const eventSource = new EventSource("/updates");
+    eventSource.onmessage = handleSSE;
+ // Function to fetch all the baskets onload
+ function addBasket(cityInfo) {
+  // Create a marker for the basket
+  const basketMarker = L.marker([cityInfo.latitude, cityInfo.longitude], {
+    icon: L.divIcon({
+      className: 'basket-icon',
+        iconSize: [20, 20], // size of the icon
+      html: '<img src="https://th.bing.com/th/id/R.d9bb1c753e4b03ac4d9a9c743287b75b?rik=h8SVGaZXv7uVPg&riu=http%3a%2f%2fclipart-library.com%2fimages_k%2feaster-basket-transparent%2feaster-basket-transparent-23.png&ehk=eTqJD5CcGIxAtijBhZ63ykr2tQ57gjaWCxMh4P80w4Y%3d&risl=&pid=ImgRaw&r=0" width="50px" height="50px">'
+    })
+  }).addTo(map);
+
+  // Bind a popup to the marker with city and country information
+  basketMarker.bindPopup(`${cityInfo.city}, ${cityInfo.country}`);
+
+  // Open popup on marker click
+  basketMarker.on('click', function () {
+    this.openPopup();
+  });
+}
+
+     
+      // Function to fetch all baskets from the server
+      async function fetchBaskets() {
+        try {
+          const response = await fetch("/getbaskets");
+          const data = await response.json();
+          console.log("Response data:", data); // Log the response data
+          data.forEach((basket) => {
+            addBasket(basket);
+          });
+        } catch (error) {
+          console.error("Error fetching baskets:", error);
+        }
+      }
+  </script>
+</body>
+</html>

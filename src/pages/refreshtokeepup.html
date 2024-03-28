@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Redirect Page</title>
+<script type="text/javascript">
+    // Function to redirect to "/"
+    function redirectToHomepage() {
+        window.location.href = "/refresherpage";
+    }
+
+    // Set interval for redirection every 4.8 minutes (288,000 milliseconds)
+    setInterval(redirectToHomepage, 4.8*60*1000);
+</script>
+</head>
+<body>
+Good!
+</body>
+</html>

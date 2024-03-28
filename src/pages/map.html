@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Master Bunny Trackers</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.1)),
+          url("https://example.com/background.jpg") center/cover fixed;
+      }
+
+      #logo {
+  color: #fff;
+  font-size: 64px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 10px;
+  overflow: visible;
+  white-space: nowrap; /* Ensures the text stays in one line */
+  position: absolute; /* Positions the element relative to the nearest positioned ancestor */
+  left: 50%; /* Moves the element to the center horizontally */
+  transform: translateX(-50%); /* Centers the element */
+}
+
+
+
+      #logo span {
+        display: inline-block;
+        transform: translateY(100%);
+        transition: transform 1s ease;
+      }
+
+      #logo.spread span {
+        transform: translateY(0);
+      }
+
+      iframe {
+        width: 100vw;
+        height: 100vh;
+        border: none;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+
+      .fade-in {
+        animation: fadeIn 1s forwards;
+      }
+
+      @keyframes fadeIn {
+        0% {
+          visibility: hidden;
+          opacity: 0;
+        }
+        100% {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+
+      .fade-out {
+        animation: fadeOut 2s forwards 6s;
+      }
+
+      @keyframes fadeOut {
+        0% {
+          visibility: visible;
+          opacity: 1;
+        }
+        100% {
+          visibility: hidden;
+          opacity: 0;
+        }
+      }
+
+      /* Top bar styles */
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background-color: #333;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        font-size: 18px;
+      }
+
+      /* Right section */
+      .right-section {
+        display: flex;
+        align-items: center;
+      }
+      #loading {
+  color: white;
+  font-size: 24px;
+  position: absolute;
+  bottom: 20px; /* Adjust the distance from the bottom */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 1s ease;
+  text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
+}
+
+
+      #loading.show {
+        opacity: 1;
+      }
+      .right-section span {
+        margin-left: 20px;
+      }
+      #logo img {
+        position: absolute;
+        top: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+
+      #logo.spread img {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <span id="utc-time"></span>
+      <span id="london-time"></span>
+      <span id="nyc-time"></span>
+      <span id="tokyo-time"></span>
+      <span id="local-time"></span>
+    </div>
+
+    <div id="logo" class="fade-in">
+      <span>M</span>
+      <span>a</span>
+      <span>s</span>
+      <span>t</span>
+      <span>e</span>
+      <span>r</span>
+      <span> </span>
+      <span>B</span>
+      <span>u</span>
+      <span>n</span>
+      <span>n</span>
+      <span>y</span>
+      <span> </span>
+      <span>T</span>
+      <span>r</span>
+      <span>a</span>
+      <span>c</span>
+      <span>k</span>
+      <span>e</span>
+      <span>r</span>
+      <span>s</span>
+      <img src="https://raw.githubusercontent.com/Haydenlogs/sources/main/bunnyicon.ico" alt="Logo Image" />
+    </div>
+    <div id="loading">Loading...</div>
+    <iframe id="iframe" src="/en-us/embed/map"></iframe>
+
+    <script>
+  // Parse the URL to get the value of the "level" parameter
+  var url = new URL(window.location.href);
+var level = url.searchParams.get("zoom");
+var level2 = url.searchParams.get("nobaskets");
+
+// Get the iframe element
+var iframe = document.getElementById("iframe");
+
+// Construct the new source URL for the iframe with the level and level2 parameters
+var newSrc = "/en-us/embed/map?zoom=" + level + "&nobaskets=" + level2;
+
+
+      // Function to update local time
+      function updateLocalTime() {
+        var now = new Date();
+        var hours = now.getHours() % 12 || 12;
+        var minutes = now.getMinutes().toString().padStart(2, "0");
+        var seconds = now.getSeconds().toString().padStart(2, "0");
+        var ampm = now.getHours() >= 12 ? "PM" : "AM";
+        document.getElementById("local-time").textContent =
+          hours + ":" + minutes + ":" + seconds + " " + ampm + " LOCAL";
+      }
+
+      // Function to update UTC time
+      function updateUTCTime() {
+        var now = new Date();
+        var hours = now.getUTCHours() % 12 || 12;
+        var minutes = now.getUTCMinutes().toString().padStart(2, "0");
+        var seconds = now.getUTCSeconds().toString().padStart(2, "0");
+        var ampm = now.getHours() >= 12 ? "PM" : "AM";
+        document.getElementById("utc-time").textContent =
+          hours + ":" + minutes + ":" + seconds + " " + ampm + " UTC/GMT";
+      }
+
+      // Function to update London time
+      function updateLondonTime() {
+        var now = new Date();
+        var hours = (now.getUTCHours() + 0) % 12 || 12; // London is in the GMT/UTC time zone
+        var minutes = now.getUTCMinutes().toString().padStart(2, "0");
+        var seconds = now.getUTCSeconds().toString().padStart(2, "0");
+        var ampm = now.getUTCHours() >= 12 ? "PM" : "AM";
+        document.getElementById("london-time").textContent =
+          hours + ":" + minutes + ":" + seconds + " " + ampm + " LONDON";
+      }
+
+      // Function to update New York City time
+      function updateNYCTime() {
+        var now = new Date();
+        var hours = (now.getUTCHours() - 4) % 12 || 12; // New York City is in the Eastern Time Zone
+        var minutes = now.getUTCMinutes().toString().padStart(2, "0");
+        var seconds = now.getUTCSeconds().toString().padStart(2, "0");
+        var ampm = now.getUTCHours() - 5 >= 12 ? "PM" : "AM";
+        document.getElementById("nyc-time").textContent =
+          hours + ":" + minutes + ":" + seconds + " " + ampm + " NYC";
+      }
+
+      // Function to update Tokyo time
+      function updateTokyoTime() {
+        var now = new Date();
+        var hours = (now.getUTCHours() + 9) % 12 || 12; // Tokyo is in the Japan Standard Time zone
+        var minutes = now.getUTCMinutes().toString().padStart(2, "0");
+        var seconds = now.getUTCSeconds().toString().padStart(2, "0");
+        var ampm = now.getUTCHours() + 9 >= 12 ? "AM" : "PM";
+        document.getElementById("tokyo-time").textContent =
+          hours + ":" + minutes + ":" + seconds + " " + ampm + " TOKYO";
+      }
+var readyfordeployment = false
+      // Update local time, UTC time, London time, New York City time, and Tokyo time every second
+      setInterval(function () {
+        if (readyfordeployment === true) {
+        updateLocalTime();
+        updateUTCTime();
+        updateLondonTime();
+        updateNYCTime();
+        updateTokyoTime();
+        }
+      }, 1000);
+
+      setTimeout(function () {
+        document.getElementById("logo").classList.add("spread");
+        document.getElementById("loading").classList.add("show");
+      }, 1000);
+
+      setTimeout(function () {
+        document.getElementById("logo").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("iframe").style.visibility = "visible";
+        document.getElementById("iframe").style.opacity = 1;
+        readyfordeployment = true
+      }, 3000); // Adjust the timing as needed
+    </script>
+  </body>
+</html>

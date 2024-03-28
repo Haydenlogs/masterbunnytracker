@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Santa Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data-10-year-range.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #city {
+            font-size: 72px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            color: #000000;
+            text-align: center;
+        }
+        #time {
+            font-size: 112px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            color: #000000;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="liveTime">
+        <div id="city"></div>
+        <div id="time"></div>
+    </div>
+
+    <script>
+        let lastRequestTime = 0;
+        const REQUEST_INTERVAL = 5000; // Request interval in milliseconds
+
+        async function fetchTimezone(latitude, longitude) {
+            const now = Date.now();
+            if (now - lastRequestTime < REQUEST_INTERVAL) {
+                // Delay the request if it's made too soon after the last one
+                await new Promise(resolve => setTimeout(resolve, REQUEST_INTERVAL - (now - lastRequestTime)));
+            }
+            lastRequestTime = Date.now();
+
+            const apiKey = 'R8KH297BMGTF'; // Replace with your TimezoneDB API key
+            const response = await fetch(`https://api.timezonedb.com/v2.1/get-time-zone?key=${apiKey}&format=json&by=position&lat=${latitude}&lng=${longitude}`);
+            const data = await response.json();
+            if (data.status === 'OK') {
+                return data.zoneName;
+            } else {
+                throw new Error(data.message);
+            }
+        }
+
+        const eventSource = new EventSource('/updates');
+
+        eventSource.onmessage = async function(event) {
+            const data = JSON.parse(event.data.replace(/^data: /, ''));
+            const currentCity = data.currentCity;
+            if (currentCity) {
+                const { city, latitude, longitude } = currentCity;
+                try {
+                    const timezone = await fetchTimezone(latitude, longitude);
+                    const localTime = moment.tz(timezone).format('YYYY-MM-DD HH:mm:ss');
+                    document.getElementById('time').innerText = localTime;
+                    document.getElementById('city').innerText = `${data.currentCity.country}, ${data.currentCity.city}`;
+                } catch (error) {
+                    console.error('Error fetching timezone:', error);
+                    document.getElementById('time').innerText = 'Unknown';
+                    document.getElementById('city').innerText = `${data.currentCity.country}, ${data.currentCity.city}`;
+                }
+            }
+        };
+
+        eventSource.onerror = function(error) {
+            console.error('EventSource failed:', error);
+            eventSource.close();
+        };
+    </script>
+</body>
+</html>

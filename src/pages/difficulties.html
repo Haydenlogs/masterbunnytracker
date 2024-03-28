@@ -1,0 +1,28 @@
+we are experiencing rate limits and/or technical difficulties. Please wait while this gets fixed.
+<script>// Function to handle SSE messages
+    // Function to handle SSE messages
+function handleSSE(event) {
+    // Parse the event data
+    const data = JSON.parse(event.data);
+    
+    // Check if the tracker has started
+    if (data.unlocked === true) {
+        // Refresh the page to the home page if the tracker has started
+        window.location.href = '/';
+    }
+  if (data.refresh === true) {
+          window.location.href = "/"
+        }
+}
+
+
+    // Function to start listening for SSE messages
+    function startSSE() {
+        const eventSource = new EventSource('/updates');
+        eventSource.onmessage = handleSSE;
+    }
+setInterval(function () {
+        window.location.href = "/";
+      }, 60000);
+    // Start listening for SSE messages
+    startSSE();</script>
