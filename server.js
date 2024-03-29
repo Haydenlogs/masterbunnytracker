@@ -10,7 +10,7 @@ const app = express();
 app.locals.clients = []; // Initialize clients array
 async function sendMessageToWebhook(message) {
   const webhookUrl =
-    "https://discord.com/api/webhooks/1213932233971204238/f6wIr0PPCAOhWg_4-AZBw2b6oknGabpuk41BfcZjCAOXCWUkB5WdyO4WsiJoF3oL8s_S";
+    "";
 
   try {
     const response = await fetch(webhookUrl, {
@@ -36,8 +36,7 @@ async function sendMessageToWebhook(message) {
   }
 }
 async function sendMessageToWebhook2(message) {
-  const webhookUrl =
-    "https://discord.com/api/webhooks/1213934842396549140/KrTMuFx1kPHHI7ghkZazbzPPAlN2ItKWmVq6vSTMlQNz8h0Q36KgnfRG1-ZKFncfL0NF";
+  const webhookUrl = "";
 
   try {
     const response = await fetch(webhookUrl, {
